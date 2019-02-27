@@ -1,6 +1,7 @@
 /*****************
 **Peter Stiglitz**
 ******CS201*******
+****Connect 4*****
 *****************/
 
 #include <curses.h>
@@ -14,7 +15,7 @@
 
 /*Struct for creating borders around windows*/
 typedef struct _win_border_struct {
-	chtype 	ls, rs, ts, bs,           //*s = direction and side
+	chtype 	ls, rs, ts, bs,           //ts = top side, rs = right side...etc
 	 	tl, tr, bl, br;                 //tl = top left, tr = top right...etc
 }WIN_BORDER;
 
@@ -193,13 +194,13 @@ void player_move(int *player, char c){
   if (*player == 0){
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     attron(COLOR_PAIR(1));
-    mvaddch(5, 17, c);
+		mvaddch(((LINES - (h1 * rows) + 1) / 2) + 11, ((COLS - (w1 * columns) + 1 ) / 2) + 1, c);
     attroff(COLOR_PAIR(1));
   }
   if (*player == 1){
     init_pair(2, COLOR_RED, COLOR_BLACK);
     attron(COLOR_PAIR(2));
-    mvaddch(7, 20, c);
+		mvaddch(((LINES - (h1 * rows) + 1) / 2) + 11, ((COLS - (w1 * columns) + 1 ) / 2) + 4, c);
     attroff(COLOR_PAIR(2));
   }
   *player = !(*player);
