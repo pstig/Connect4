@@ -42,14 +42,16 @@ void default_win(WIN *p_win);
 
 /*Game Logic Function Definitions*/
 void create_game_board(WIN win);
-void player_move(int *player, char c);
+void player_move(int *player, char c, int (*board)[columns]);
+void refreshBoard(int board[rows][columns]);
 
 int main(int argc, char *argv[]){
   WIN screen;       //full window
   WIN board;        //game board window
-	WIN nextmove;			//window for player input
-	WIN score;				//window for scoreboard
+	// WIN nextmove;			//window for player input
+	// WIN score;				//window for scoreboard
 	char input;       //input character
+	int activeGame = 1;
 
 
 /*initialize curses stuff*/
@@ -71,35 +73,48 @@ int main(int argc, char *argv[]){
   init_pair(2, COLOR_RED, COLOR_BLACK);
   char mesg0[] = "Player 1 Move: ";
   char mesg1[] = "Player 2 Move: ";
-
-
+	int boardArray[rows][columns] = {0};
   attron(COLOR_PAIR(1));
   mvprintw(LINES - 2, 2 ,"%s",mesg0);
   attroff(COLOR_PAIR(1));
 
-  while((input = getch()) != KEY_F(1)) {
+//Main Game loop
+  while(activeGame == 1) {
+		input = getch();
 		switch(playerCounter) {
 	    case 0:
+				if (input == KEY_F(1)){
+					playerCounter = 3;
+					break;
+				}
 	      attron(COLOR_PAIR(1));
 	      mvprintw(LINES - 2, 2 ,"%s",mesg0);
 	      mvprintw(LINES - 2, 1 + 16, "%c", input);
 	      attroff(COLOR_PAIR(1));
-				player_move(&playerCounter, input);
+				if( (input > 48) && (input < columns + 49)){
+					player_move(&playerCounter, input, &boardArray[columns]);
+					refreshBoard(boardArray);
+				}
 				break;
 
 	    case 1:
+				if (input == KEY_F(1)){
+					playerCounter = 3;
+					break;
+				}
 	      attron(COLOR_PAIR(2));
 	      mvprintw(LINES - 2, 2 ,"%s",mesg1);
 	      mvprintw(LINES - 2, 1 + 16, "%c", input);
 	      attroff(COLOR_PAIR(2));
-				player_move(&playerCounter, input);
+				if( (input > 48) && (input < columns + 49)){
+					player_move(&playerCounter, input, &boardArray[columns]);
+					refreshBoard(boardArray);
+				}
 				break;
 		}
-
-
   }
-  endwin();
-  return 0;
+	endwin();
+	return 0;
 }
 
 void init_win_params(WIN *p_win, int height, int width, int sx, int sy) {
@@ -190,18 +205,40 @@ void create_game_board(WIN win){
   }
 }
 
-void player_move(int *player, char c){
-  if (*player == 0){
-    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-    attron(COLOR_PAIR(1));
-		mvaddch(((LINES - (h1 * rows) + 1) / 2) + 11, ((COLS - (w1 * columns) + 1 ) / 2) + 1, c);
-    attroff(COLOR_PAIR(1));
-  }
-  if (*player == 1){
-    init_pair(2, COLOR_RED, COLOR_BLACK);
-    attron(COLOR_PAIR(2));
-		mvaddch(((LINES - (h1 * rows) + 1) / 2) + 11, ((COLS - (w1 * columns) + 1 ) / 2) + 4, c);
-    attroff(COLOR_PAIR(2));
-  }
+void player_move(int *player, char c, int (*board)[columns]){
+	int posC = c-98;
+	for(int i = rows-1; i >= 0 ; i--){
+		if (board[i][posC] == 0){
+			board[i][posC] = *player + 1;
+			break;
+		}
+	}
+
   *player = !(*player);
+
+}
+
+void refreshBoard(int board[rows][columns]){
+	int ystart = ((LINES - (h1 * rows) + 1) / 2);
+	int xstart = ((COLS - (w1 * columns) + 1 ) / 2);
+	for(int i = 0; i < rows; i++){
+		for(int j = 0; j < columns; j++){
+			if(board[i][j] == 0){
+				mvaddch(ystart + (i * 2) + 1, xstart + (j * 3) + 1, ' ');
+			}
+			if (board[i][j] == 1){
+				init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+				attron(COLOR_PAIR(1));
+				mvaddch(ystart + (i * 2) + 1, xstart + (j * 3) + 1, 'O');
+				attroff(COLOR_PAIR(1));
+			}
+
+			if (board[i][j] == 2){
+				init_pair(2, COLOR_RED, COLOR_BLACK);
+				attron(COLOR_PAIR(2));
+				mvaddch(ystart + (i * 2) + 1, xstart + (j * 3) + 1, 'O');
+				attroff(COLOR_PAIR(2));
+			}
+		}
+	}
 }
