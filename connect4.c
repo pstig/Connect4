@@ -7,6 +7,7 @@
 #include <curses.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 //NTS yellow is p1, red is p2
 // p1 is 0, p2 is 1
 
@@ -83,30 +84,24 @@ int main(int argc, char *argv[]){
 		input = getch();
 		switch(playerCounter) {
 	    case 0:
-				if (input == KEY_F(1)){
-					playerCounter = 3;
-					break;
-				}
+
 	      attron(COLOR_PAIR(1));
 	      mvprintw(LINES - 2, 2 ,"%s",mesg0);
 	      mvprintw(LINES - 2, 1 + 16, "%c", input);
 	      attroff(COLOR_PAIR(1));
-				if( (input > 48) && (input < columns + 49)){
+				if( (input > '0') && (input < columns + '1')){
 					player_move(&playerCounter, input, &boardArray[columns]);
 					refreshBoard(boardArray);
 				}
 				break;
 
 	    case 1:
-				if (input == KEY_F(1)){
-					playerCounter = 3;
-					break;
-				}
+
 	      attron(COLOR_PAIR(2));
 	      mvprintw(LINES - 2, 2 ,"%s",mesg1);
 	      mvprintw(LINES - 2, 1 + 16, "%c", input);
 	      attroff(COLOR_PAIR(2));
-				if( (input > 48) && (input < columns + 49)){
+				if( (input > '0') && (input < columns + '1')){
 					player_move(&playerCounter, input, &boardArray[columns]);
 					refreshBoard(boardArray);
 				}
@@ -205,11 +200,11 @@ void create_game_board(WIN win){
   }
 }
 
-void player_move(int *player, char c, int (*board)[columns]){
-	int posC = c-98;
+void player_move(int *player, char ch, int (*board)[columns]){
+	int j = (int)ch - '1';
 	for(int i = rows-1; i >= 0 ; i--){
-		if (board[i][posC] == 0){
-			board[i][posC] = *player + 1;
+		if (board[i][j] == 0){
+			board[i][j] = *player + 1;
 			break;
 		}
 	}
