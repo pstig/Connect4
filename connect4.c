@@ -8,31 +8,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//NTS yellow is p1, red is p2
-// p1 is 0, p2 is 1
+/***Notes to Self***
+ p1 is 0, p2 is 1
+p_win->starty = (LINES - (p_win->height * rows)+1)/2;
+p_win->startx = (COLS - (p_win->width * columns) +1 )/2;
+0,0 is top left corner of screen
+all coords in curses are (y,x)
+LINES, COLS is bottom right of screen
+WINDOW * win = newwin(height, width, starty, startx)
+refresh() -- updates screen to whats in memory
+wrefresh(win) -- only refreshes specific window
+box(win, 0, 0) -- creates a box around WINDOW
+wborder(win, ls, rs, ts, bs, tl, tr, bl br) -- creates border with specified chars for left side, right side etc
+******************/
 
-//p_win->starty = (LINES - (p_win->height * rows)+1)/2;
-//p_win->startx = (COLS - (p_win->width * columns) +1 )/2;
-
-/*Struct for creating borders around windows*/
-typedef struct _win_border_struct {
-	chtype 	ls, rs, ts, bs,           //ts = top side, rs = right side...etc
-	 	tl, tr, bl, br;                 //tl = top left, tr = top right...etc
-}WIN_BORDER;
-
-/*Struct for creating windows*/
-typedef struct _WIN_struct {
-
-  int initialx, initialy;      //coords for initial x and y, does not change
-	int startx, starty;         //coords for start of window, top left corner, this value changes
-  int height, width;          //dimensions of window
-	WIN_BORDER border;          //border struct with info on border of window (above struct)
-}WIN;
-
-/*Function definitions for window and border creation*/
-void init_win_params(WIN *p_win, int height, int width, int sx, int sy);
-void create_box(WIN *win, bool flag);
-void default_win(WIN *p_win);
 
 
 /*Temp Hardcoded Testing Values*/
@@ -42,162 +31,108 @@ void default_win(WIN *p_win);
 #define columns 7   //actual number of columns
 
 /*Game Logic Function Definitions*/
-void create_game_board(WIN win);
+
 void player_move(int *player, char c, int (*board)[columns]);
-void refreshBoard(int board[rows][columns]);
+void refreshBoard(int board[rows][columns], int yMax, int xMax);
+void drawGame(WINDOW * screen, WINDOW * inputbox, WINDOW * scorebox);
+void drawMoveI(WINDOW * inputbox, int cnum, char input);
+void drawBoard(WINDOW * gameboard);
+void drawMove();
+
+/*Main*/
 
 int main(int argc, char *argv[]){
-  WIN screen;       //full window
-  WIN board;        //game board window
-	// WIN nextmove;			//window for player input
-	// WIN score;				//window for scoreboard
+
 	char input;       //input character
 	int activeGame = 1;
 
 
-/*initialize curses stuff*/
+/*initialize curses and color*/
 	initscr();
 	start_color();
 	cbreak();
-	keypad(stdscr, TRUE);
 	noecho();
+	init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(2, COLOR_RED, COLOR_BLACK);
+
+/*Get Max Window Values*/
+	int yMax, xMax;
+	getmaxyx(stdscr, yMax, xMax);
+
+
+/*Create Game Windows*/
+	WINDOW * screen = newwin(yMax, xMax, 0, 0);
+	WINDOW * inputbox = newwin(3, xMax, yMax - 3, 0);
+	WINDOW * scorebox = newwin(4, 13, 0, (xMax / 2) - 7);
+	WINDOW * gameboard = newwin(2 * rows + 1, 3 * columns + 1, (yMax - (2 * rows)+1)/2, (xMax - (3 * columns) + 1)/2);
+	refresh();
+	drawGame(screen, inputbox, scorebox);
+	drawBoard(gameboard);
 
 	/* Initialize the game parameters and initial states */
-	int boardsx = (COLS - (w1 * columns) + 1 ) / 2;
-	int boardsy = (LINES - (h1 * rows) + 1) / 2;
-	init_win_params(&board, h1, w1, boardsx, boardsy);
-  default_win(&screen);
-	create_box(&screen, TRUE);         //creates border around whole window
-  create_game_board(board);            //creates game board in window
+	// int boardsx = (COLS - (w1 * columns) + 1 ) / 2;
+	// int boardsy = (LINES - (h1 * rows) + 1) / 2;
   int playerCounter = 0;             //tracks which players move it is
-  init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(2, COLOR_RED, COLOR_BLACK);
-  char mesg0[] = "Player 1 Move: ";
-  char mesg1[] = "Player 2 Move: ";
 	int boardArray[rows][columns] = {0};
-  attron(COLOR_PAIR(1));
-  mvprintw(LINES - 2, 2 ,"%s",mesg0);
-  attroff(COLOR_PAIR(1));
+
 
 //Main Game loop
   while(activeGame == 1) {
 		input = getch();
 		switch(playerCounter) {
 	    case 0:
-
-	      attron(COLOR_PAIR(1));
-	      mvprintw(LINES - 2, 2 ,"%s",mesg0);
-	      mvprintw(LINES - 2, 1 + 16, "%c", input);
-	      attroff(COLOR_PAIR(1));
-				if( (input > '0') && (input < columns + '1')){
+				drawMoveI(inputbox, 1, input);
+				if (input == '.'){
+					goto end;
+				}
+				if( (input > 96) && (input < columns + 123)){
 					player_move(&playerCounter, input, &boardArray[columns]);
-					refreshBoard(boardArray);
+					// refreshBoard(boardArray, yMax, xMax);
 				}
 				break;
 
 	    case 1:
-
-	      attron(COLOR_PAIR(2));
-	      mvprintw(LINES - 2, 2 ,"%s",mesg1);
-	      mvprintw(LINES - 2, 1 + 16, "%c", input);
-	      attroff(COLOR_PAIR(2));
-				if( (input > '0') && (input < columns + '1')){
+				drawMoveI(inputbox, 2, input);
+				if (input == '.'){
+					goto end;
+				}
+				if( (input > 96) && (input < columns + 123)){
 					player_move(&playerCounter, input, &boardArray[columns]);
-					refreshBoard(boardArray);
+					// refreshBoard(boardArray, yMax, xMax);
 				}
 				break;
+			end:
+				endwin();
+				return 0;
 		}
   }
-	endwin();
-	return 0;
 }
 
-void init_win_params(WIN *p_win, int height, int width, int sx, int sy) {
-	p_win->height = height;
-	p_win->width = width;
-	p_win->starty = sy;
-	p_win->startx = sx;
-  p_win->initialy = p_win->starty;
-  p_win->initialx = p_win->startx;
+void drawBoard(WINDOW * gameboard){
 
-	p_win->border.ls = '|';
-	p_win->border.rs = '|';
-	p_win->border.ts = '-';
-	p_win->border.bs = '-';
-	p_win->border.tl = '+';
-	p_win->border.tr = '+';
-	p_win->border.bl = '+';
-	p_win->border.br = '+';
-
-}
-
-void default_win(WIN *p_win) {
-  p_win->height = LINES-1;
-	p_win->width = COLS -1;
-	p_win->starty = 0;
-	p_win->startx = 0;
-
-	p_win->border.ls = '|';
-	p_win->border.rs = '|';
-	p_win->border.ts = '-';
-	p_win->border.bs = '-';
-	p_win->border.tl = '+';
-	p_win->border.tr = '+';
-	p_win->border.bl = '+';
-	p_win->border.br = '+';
-}
-
-
-void create_box(WIN *p_win, bool flag) {
-  int i, j;
-	int x, y, w, h;
-
-	x = p_win->startx;
-	y = p_win->starty;
-	w = p_win->width;
-	h = p_win->height;
-
-	if(flag == TRUE)
-	{	mvaddch(y, x, p_win->border.tl);
-		mvaddch(y, x + w, p_win->border.tr);
-		mvaddch(y + h, x, p_win->border.bl);
-		mvaddch(y + h, x + w, p_win->border.br);
-		mvhline(y, x + 1, p_win->border.ts, w - 1);
-		mvhline(y + h, x + 1, p_win->border.bs, w - 1);
-		mvvline(y + 1, x, p_win->border.ls, h - 1);
-		mvvline(y + 1, x + w, p_win->border.rs, h - 1);
-
+	for(int i = 0; i < 2 * rows; i = i + 2){
+			mvwhline(gameboard, i, 0, 0, 3 * columns + 1);
 	}
-	else
-		for(j = y; j <= y + h; ++j)
-			for(i = x; i <= x + w; ++i)
-				mvaddch(j, i, ' ');
+	mvwhline(gameboard, 2 * rows, 0, 0, 3 * columns +1);
 
-	refresh();
+	for(int i = 0; i < 3 * columns; i = i + 3){
+		mvwvline(gameboard, 0, i, 0, 2 * rows + 1);
+	}
+	mvwvline(gameboard, 0, 3 * columns, 0, 2 * rows + 1);
 
+	for(int i = 0; i < columns; i++){
+		mvwprintw(gameboard, 2 * rows + 1, 3 * i + 1, "a");
+	}
+
+	box(gameboard, 0,0);
+	wrefresh(gameboard);
 }
 
-void create_game_board(WIN win){
-  for(int i = 0; i < rows; i++){
-    for(int j = 0; j < columns - 1; j ++){
-      if ( i % 2 == 0){
-        create_box(&win, TRUE);
-				win.startx = win.startx + w1;
-				create_box(&win, TRUE);
-      }
-      if ( i % 2 == 1){
-        create_box(&win, TRUE);
-			  win.startx = win.startx - w1;
-				create_box(&win, TRUE);
-      }
-    }
-    if (i != rows -1){
-      create_box(&win, TRUE);
-      win.starty = win.starty + h1;
-      create_box(&win, TRUE);
-    }
+void drawMove(){
 
-  }
+
+
+
 }
 
 void player_move(int *player, char ch, int (*board)[columns]){
@@ -213,9 +148,9 @@ void player_move(int *player, char ch, int (*board)[columns]){
 
 }
 
-void refreshBoard(int board[rows][columns]){
-	int ystart = ((LINES - (h1 * rows) + 1) / 2);
-	int xstart = ((COLS - (w1 * columns) + 1 ) / 2);
+void refreshBoard(int board[rows][columns], int yMax, int xMax){
+	int ystart = ((yMax - (h1 * rows) + 1) / 2);
+	int xstart = ((xMax - (w1 * columns) + 1 ) / 2);
 	for(int i = 0; i < rows; i++){
 		for(int j = 0; j < columns; j++){
 			if(board[i][j] == 0){
@@ -236,4 +171,45 @@ void refreshBoard(int board[rows][columns]){
 			}
 		}
 	}
+}
+
+void drawGame(WINDOW * screen, WINDOW * inputbox, WINDOW * scorebox){
+
+	box(screen,0,0);
+	box(inputbox, 0,0);
+	box(scorebox, 0, 0);
+	mvwprintw(scorebox, 1,4, "SCORE");
+	wattron(scorebox, COLOR_PAIR(1));
+	mvwprintw(scorebox, 2,1, "P1");
+	wattroff(scorebox, COLOR_PAIR(1));
+	mvwprintw(scorebox, 2, 6, "-");
+	wattron(scorebox, COLOR_PAIR(2));
+	mvwprintw(scorebox, 2, 10, "P2");
+	wattroff(scorebox, COLOR_PAIR(2));
+
+
+	wattron(inputbox, COLOR_PAIR(1));
+	mvwprintw(inputbox, 1, 2 ,"Player 1 Move: ");
+	wattroff(inputbox, COLOR_PAIR(1));
+
+	wrefresh(screen);
+	wrefresh(inputbox);
+	wrefresh(scorebox);
+
+}
+
+void drawMoveI(WINDOW * inputbox, int cnum, char input){
+
+	char * mesg;
+	if (cnum == 1)
+		mesg = "Player 1 Move: ";
+	if (cnum == 2)
+		mesg = "Player 2 Move: ";
+
+	wattron(inputbox, COLOR_PAIR(cnum));
+	mvwprintw(inputbox, 1, 2 ,"%s",mesg);
+	mvwprintw(inputbox, 1, 17, "%c", input);
+	wattroff(inputbox, COLOR_PAIR(cnum));
+	wrefresh(inputbox);
+
 }
