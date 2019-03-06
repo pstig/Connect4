@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <menu.h>
 /***Notes to Self***
  p1 is 0, p2 is 1
 p_win->starty = (LINES - (p_win->height * rows)+1)/2;
@@ -38,8 +39,17 @@ void drawGame(WINDOW * screen, WINDOW * inputbox, WINDOW * scorebox);
 void drawMoveI(WINDOW * inputbox, int cnum, char input);
 void drawBoard(WINDOW * gameboard);
 void drawMove();
+struct Game *newGame(int options[4]);
+void delGame(struct Game *game);
+void startMenu(WINDOW * menu);
 
 /*Main*/
+struct Game{
+	int gamemode;
+	int difficulty;
+	int rowN;
+	int colN;
+};
 
 int main(int argc, char *argv[]){
 
@@ -55,12 +65,17 @@ int main(int argc, char *argv[]){
 	init_pair(1, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(2, COLOR_RED, COLOR_BLACK);
 
+
+
+	//newGame();
 /*Get Max Window Values*/
 	int yMax, xMax;
 	getmaxyx(stdscr, yMax, xMax);
 
 
 /*Create Game Windows*/
+	WINDOW * menu = newwin(6, 39, (yMax - 6)/2, (xMax - (39) + 1)/2);
+	startMenu(menu);
 	WINDOW * screen = newwin(yMax, xMax, 0, 0);
 	WINDOW * inputbox = newwin(3, xMax, yMax - 3, 0);
 	WINDOW * scorebox = newwin(4, 13, 0, (xMax / 2) - 7);
@@ -213,3 +228,56 @@ void drawMoveI(WINDOW * inputbox, int cnum, char input){
 	wrefresh(inputbox);
 
 }
+
+ struct Game *newGame(int options[4]){
+	 struct Game *game = malloc(sizeof(struct Game));
+	 game->gamemode = options[0];
+	 game->difficulty = options[1];
+	 game->rowN = options[2];
+	 game->colN = options[3];
+	 return game;
+ }
+
+ void delGame(struct Game *game){
+	 if(game != NULL){
+		 free (game);
+	 }
+ }
+
+void startMenu(WINDOW * menu){
+	 int choice;
+	 int highlight0 = 0;
+	 int highlight1 = 0;
+	 int options[4] = {0,0,6,7};
+	 char* gamemodeC[2] = {"1-Player", "2-Player"};
+	 char* difficultyC[5] = {"0", "1", "2", "3", "4"};
+	 keypad(menu, true);
+	 mvwprintw(menu, 1, 1, "Gamemode: ");   //0  P1 vs AI, 1 P1 vs P2
+	 mvwprintw(menu, 2, 1, "Difficulty: "); //0 gamemode 1, 1 easy, 2 medium, 3 hard, 4 impossible
+	 mvwprintw(menu, 3, 1, "Number of Rows:    6"); //idk yet
+	 mvwprintw(menu, 4, 1, "Number of Columns: 7"); //idk yet
+	 box(menu,0,0);
+
+	 while(1){
+		 for(int i = 0; i < 2; i++){
+			 if(i == highlight0)
+			 	wattron(menu, A_STANDOUT);
+			mvwprintw(menu, 1, 20 + ( i * 9), gamemodeC[i]);
+			wattroff(menu, A_STANDOUT);
+		 }
+		 for(int i = 0; i < 5; i++){
+			 if(i == highlight1)
+			 	wattron(menu, A_STANDOUT);
+			mvwprintw(menu, 2, 20 + (i * 3), difficultyC[i]);
+			wattroff(menu, A_STANDOUT);
+		 }
+		 wrefresh(menu);
+
+	 }
+	 struct Game game = *newGame(options);
+	 mvwprintw(menu, 4, 0, "%d", game.gamemode);
+	 wrefresh(menu);
+
+
+
+ }
