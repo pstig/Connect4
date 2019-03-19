@@ -8,14 +8,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <menu.h>
+
 /***Notes to Self***
  p1 is 0, p2 is 1
 p_win->starty = (LINES - (p_win->height * rows)+1)/2;
 p_win->startx = (COLS - (p_win->width * columns) +1 )/2;
-0,0 is top left corner of screen
 all coords in curses are (y,x)
-LINES, COLS is bottom right of screen
+0,0 is top left corner of screen
+(LINES, COLS) is bottom right of screen
 WINDOW * win = newwin(height, width, starty, startx)
 refresh() -- updates screen to whats in memory
 wrefresh(win) -- only refreshes specific window
@@ -272,7 +272,7 @@ void startMenu(WINDOW * menu){
 			wattroff(menu, A_STANDOUT);
 		 }
 		 wrefresh(menu);
-
+		 break;
 	 }
 	 struct Game game = *newGame(options);
 	 mvwprintw(menu, 4, 0, "%d", game.gamemode);
