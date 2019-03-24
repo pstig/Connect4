@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+#define ARRAY_SIZE(rows, columns) sizeof(int *) * rows + sizeof(int) * columns * rows
 #define CTRLD 	4
 
 char *choices[] = {

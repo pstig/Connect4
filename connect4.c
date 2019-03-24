@@ -34,7 +34,7 @@ wborder(win, ls, rs, ts, bs, tl, tr, bl br) -- creates border with specified cha
 /*Game Logic Function Definitions*/
 
 void player_move(int *player, char c, int (*board)[columns]);
-void refreshBoard(int board[rows][columns], int yMax, int xMax);
+void refreshBoard(int board[rows][columns], int yMax, int xMax, WINDOW * gameboard);
 void drawGame(WINDOW * screen, WINDOW * inputbox, WINDOW * scorebox);
 void drawMoveI(WINDOW * inputbox, int cnum, char input);
 void drawBoard(WINDOW * gameboard);
@@ -43,7 +43,7 @@ struct Game *newGame(int options[4]);
 void delGame(struct Game *game);
 void startMenu(WINDOW * menu);
 
-/*Main*/
+
 struct Game{
 	int gamemode;
 	int difficulty;
@@ -51,6 +51,9 @@ struct Game{
 	int colN;
 };
 
+
+
+/*Main*/
 int main(int argc, char *argv[]){
 
 	char input;       //input character
@@ -64,6 +67,7 @@ int main(int argc, char *argv[]){
 	noecho();
 	init_pair(1, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(2, COLOR_RED, COLOR_BLACK);
+
 
 
 
@@ -102,7 +106,7 @@ int main(int argc, char *argv[]){
 				}
 				if( (input > 96) && (input < columns + 123)){
 					player_move(&playerCounter, input, &boardArray[columns]);
-					// refreshBoard(boardArray, yMax, xMax);
+					refreshBoard(boardArray, yMax, xMax, gameboard);
 				}
 				break;
 
@@ -113,7 +117,7 @@ int main(int argc, char *argv[]){
 				}
 				if( (input > 96) && (input < columns + 123)){
 					player_move(&playerCounter, input, &boardArray[columns]);
-					// refreshBoard(boardArray, yMax, xMax);
+					refreshBoard(boardArray, yMax, xMax, gameboard);
 				}
 				break;
 			end:
@@ -163,13 +167,13 @@ void player_move(int *player, char ch, int (*board)[columns]){
 
 }
 
-void refreshBoard(int board[rows][columns], int yMax, int xMax){
+void refreshBoard(int board[rows][columns], int yMax, int xMax, WINDOW * gameboard){
 	int ystart = ((yMax - (h1 * rows) + 1) / 2);
 	int xstart = ((xMax - (w1 * columns) + 1 ) / 2);
 	for(int i = 0; i < rows; i++){
 		for(int j = 0; j < columns; j++){
 			if(board[i][j] == 0){
-				mvaddch(ystart + (i * 2) + 1, xstart + (j * 3) + 1, ' ');
+				mvaddch(ystart + (i * 2) + 1, xstart + (j * 3) + 1, '7');
 			}
 			if (board[i][j] == 1){
 				init_pair(1, COLOR_YELLOW, COLOR_BLACK);
@@ -186,6 +190,7 @@ void refreshBoard(int board[rows][columns], int yMax, int xMax){
 			}
 		}
 	}
+	wrefresh(gameboard);
 }
 
 void drawGame(WINDOW * screen, WINDOW * inputbox, WINDOW * scorebox){

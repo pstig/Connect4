@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <menu.h>
-#include <form.h>
+//#include <menu.h>
+//#include <form.h>
 
 /*
  +-------------------------------+ <-- win_body
