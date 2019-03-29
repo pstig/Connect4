@@ -13,7 +13,7 @@ struct boardGraph{
 struct Move{
   int row;
   int column;
-};
+}; 
 
 /*DFS on board states to find best move*/
 int minimax(int depth, int move, bool isMax);
