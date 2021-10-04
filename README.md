@@ -1,7 +1,7 @@
 # Connect4
 CS201 Portfolio Project
 
-***Note this was done in 24 hours of furious coding before the deadline. It is technically functional but has a lot of issues.***
+***Note this was done in 24 hours before the deadline. It is technically functional but has a lot of issues.***
 
 
 This game is based on the game Connect4. The goal of the game is to get 4 "tokens" in a row in a board. The tokens 
